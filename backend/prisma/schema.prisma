@@ -1,0 +1,116 @@
+// Prisma schema - 3D-tulostinvaraus
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Käyttäjäroolit
+enum Role {
+  STUDENT
+  STAFF
+  ADMIN
+}
+
+// Tulostimen tila
+enum PrinterStatus {
+  AVAILABLE
+  MAINTENANCE
+  OUT_OF_ORDER
+}
+
+// Varauksen tila
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+// Käyttäjä
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          Role      @default(STUDENT)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  reservations  Reservation[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+// Tulostin
+model Printer {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?
+  location    String        @default("Technobothnia")
+  status      PrinterStatus @default(AVAILABLE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  reservations Reservation[]
+
+  @@map("printers")
+}
+
+// Varaus
+model Reservation {
+  id          String            @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  description String?
+  status      ReservationStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  printerId   String
+  printer     Printer           @relation(fields: [printerId], references: [id], onDelete: Cascade)
+
+  @@index([startTime, endTime])
+  @@index([printerId])
+  @@index([userId])
+  @@map("reservations")
+}
+
+// Muutosloki
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String
+  oldValues   Json?
+  newValues   Json?
+  createdAt   DateTime @default(now())
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// Järjestelmäasetukset
+model SystemSettings {
+  id                      String   @id @default(cuid())
+  maxReservationsPerUser  Int      @default(3)
+  maxReservationHours     Int      @default(48)
+  allowWeekendReservations Boolean @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("system_settings")
+}

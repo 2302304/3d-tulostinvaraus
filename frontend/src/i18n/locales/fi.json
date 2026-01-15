@@ -1,0 +1,92 @@
+{
+  "common": {
+    "loading": "Ladataan...",
+    "error": "Virhe tapahtui",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "edit": "Muokkaa",
+    "create": "Luo",
+    "search": "Hae",
+    "back": "Takaisin",
+    "yes": "Kyllä",
+    "no": "Ei"
+  },
+  "nav": {
+    "dashboard": "Etusivu",
+    "reservations": "Varaukset",
+    "calendar": "Kalenteri",
+    "admin": "Hallinta",
+    "logout": "Kirjaudu ulos"
+  },
+  "auth": {
+    "login": "Kirjaudu",
+    "register": "Rekisteröidy",
+    "email": "Sähköposti",
+    "password": "Salasana",
+    "firstName": "Etunimi",
+    "lastName": "Sukunimi",
+    "loginTitle": "Kirjaudu sisään",
+    "registerTitle": "Luo käyttäjätili",
+    "noAccount": "Ei käyttäjätiliä?",
+    "hasAccount": "Onko sinulla jo tili?",
+    "loginError": "Virheellinen sähköposti tai salasana",
+    "registerSuccess": "Rekisteröityminen onnistui! Voit nyt kirjautua sisään."
+  },
+  "dashboard": {
+    "title": "Tervetuloa",
+    "subtitle": "3D-tulostimien varausjärjestelmä",
+    "todayReservations": "Tämän päivän varaukset",
+    "myActiveReservations": "Aktiiviset varaukseni",
+    "availablePrinters": "Vapaat tulostimet",
+    "quickActions": "Pikatoiminnot",
+    "newReservation": "Uusi varaus",
+    "viewCalendar": "Näytä kalenteri"
+  },
+  "printers": {
+    "title": "Tulostimet",
+    "name": "Nimi",
+    "location": "Sijainti",
+    "status": "Tila",
+    "available": "Vapaa",
+    "maintenance": "Huollossa",
+    "outOfOrder": "Epäkunnossa",
+    "addPrinter": "Lisää tulostin"
+  },
+  "reservations": {
+    "title": "Varaukset",
+    "myReservations": "Omat varaukset",
+    "newReservation": "Uusi varaus",
+    "printer": "Tulostin",
+    "startTime": "Alkuaika",
+    "endTime": "Loppuaika",
+    "description": "Kuvaus",
+    "status": "Tila",
+    "pending": "Odottaa",
+    "confirmed": "Vahvistettu",
+    "cancelled": "Peruutettu",
+    "completed": "Valmis",
+    "cancelReservation": "Peruuta varaus",
+    "noReservations": "Ei varauksia",
+    "overlapError": "Valittu aika on jo varattu",
+    "createSuccess": "Varaus luotu onnistuneesti",
+    "cancelSuccess": "Varaus peruutettu"
+  },
+  "calendar": {
+    "title": "Varauskalenteri",
+    "today": "Tänään",
+    "week": "Viikko",
+    "day": "Päivä"
+  },
+  "admin": {
+    "title": "Hallintapaneeli",
+    "users": "Käyttäjät",
+    "printers": "Tulostimet",
+    "settings": "Asetukset",
+    "role": "Rooli",
+    "active": "Aktiivinen",
+    "student": "Opiskelija",
+    "staff": "Henkilökunta",
+    "adminRole": "Ylläpitäjä"
+  }
+}

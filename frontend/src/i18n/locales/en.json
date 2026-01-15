@@ -1,0 +1,92 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "reservations": "Reservations",
+    "calendar": "Calendar",
+    "admin": "Admin",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "loginTitle": "Sign in",
+    "registerTitle": "Create account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginError": "Invalid email or password",
+    "registerSuccess": "Registration successful! You can now log in."
+  },
+  "dashboard": {
+    "title": "Welcome",
+    "subtitle": "3D Printer Reservation System",
+    "todayReservations": "Today's reservations",
+    "myActiveReservations": "My active reservations",
+    "availablePrinters": "Available printers",
+    "quickActions": "Quick actions",
+    "newReservation": "New reservation",
+    "viewCalendar": "View calendar"
+  },
+  "printers": {
+    "title": "Printers",
+    "name": "Name",
+    "location": "Location",
+    "status": "Status",
+    "available": "Available",
+    "maintenance": "Maintenance",
+    "outOfOrder": "Out of order",
+    "addPrinter": "Add printer"
+  },
+  "reservations": {
+    "title": "Reservations",
+    "myReservations": "My reservations",
+    "newReservation": "New reservation",
+    "printer": "Printer",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "description": "Description",
+    "status": "Status",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "completed": "Completed",
+    "cancelReservation": "Cancel reservation",
+    "noReservations": "No reservations",
+    "overlapError": "Selected time is already booked",
+    "createSuccess": "Reservation created successfully",
+    "cancelSuccess": "Reservation cancelled"
+  },
+  "calendar": {
+    "title": "Reservation Calendar",
+    "today": "Today",
+    "week": "Week",
+    "day": "Day"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "users": "Users",
+    "printers": "Printers",
+    "settings": "Settings",
+    "role": "Role",
+    "active": "Active",
+    "student": "Student",
+    "staff": "Staff",
+    "adminRole": "Admin"
+  }
+}

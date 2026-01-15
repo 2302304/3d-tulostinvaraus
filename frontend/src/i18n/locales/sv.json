@@ -1,0 +1,92 @@
+{
+  "common": {
+    "loading": "Laddar...",
+    "error": "Ett fel inträffade",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "delete": "Radera",
+    "edit": "Redigera",
+    "create": "Skapa",
+    "search": "Sök",
+    "back": "Tillbaka",
+    "yes": "Ja",
+    "no": "Nej"
+  },
+  "nav": {
+    "dashboard": "Startsida",
+    "reservations": "Bokningar",
+    "calendar": "Kalender",
+    "admin": "Admin",
+    "logout": "Logga ut"
+  },
+  "auth": {
+    "login": "Logga in",
+    "register": "Registrera",
+    "email": "E-post",
+    "password": "Lösenord",
+    "firstName": "Förnamn",
+    "lastName": "Efternamn",
+    "loginTitle": "Logga in",
+    "registerTitle": "Skapa konto",
+    "noAccount": "Har du inget konto?",
+    "hasAccount": "Har du redan ett konto?",
+    "loginError": "Ogiltig e-post eller lösenord",
+    "registerSuccess": "Registreringen lyckades! Du kan nu logga in."
+  },
+  "dashboard": {
+    "title": "Välkommen",
+    "subtitle": "3D-skrivare bokningssystem",
+    "todayReservations": "Dagens bokningar",
+    "myActiveReservations": "Mina aktiva bokningar",
+    "availablePrinters": "Tillgängliga skrivare",
+    "quickActions": "Snabbåtgärder",
+    "newReservation": "Ny bokning",
+    "viewCalendar": "Visa kalender"
+  },
+  "printers": {
+    "title": "Skrivare",
+    "name": "Namn",
+    "location": "Plats",
+    "status": "Status",
+    "available": "Tillgänglig",
+    "maintenance": "Underhåll",
+    "outOfOrder": "Ur funktion",
+    "addPrinter": "Lägg till skrivare"
+  },
+  "reservations": {
+    "title": "Bokningar",
+    "myReservations": "Mina bokningar",
+    "newReservation": "Ny bokning",
+    "printer": "Skrivare",
+    "startTime": "Starttid",
+    "endTime": "Sluttid",
+    "description": "Beskrivning",
+    "status": "Status",
+    "pending": "Väntande",
+    "confirmed": "Bekräftad",
+    "cancelled": "Avbokad",
+    "completed": "Slutförd",
+    "cancelReservation": "Avboka",
+    "noReservations": "Inga bokningar",
+    "overlapError": "Vald tid är redan bokad",
+    "createSuccess": "Bokning skapad",
+    "cancelSuccess": "Bokning avbokad"
+  },
+  "calendar": {
+    "title": "Bokningskalender",
+    "today": "Idag",
+    "week": "Vecka",
+    "day": "Dag"
+  },
+  "admin": {
+    "title": "Adminpanel",
+    "users": "Användare",
+    "printers": "Skrivare",
+    "settings": "Inställningar",
+    "role": "Roll",
+    "active": "Aktiv",
+    "student": "Student",
+    "staff": "Personal",
+    "adminRole": "Admin"
+  }
+}
