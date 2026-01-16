@@ -8,6 +8,8 @@ import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import printerRoutes from './routes/printer.routes.js';
 import reservationRoutes from './routes/reservation.routes.js';
+import auditRoutes from './routes/audit.routes.js';
+import { errorHandler } from './middleware/error.middleware.js';
 
 // Prisma client
 export const prisma = new PrismaClient();
@@ -43,6 +45,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/printers', printerRoutes);
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -51,14 +54,11 @@ app.get('/api/health', (_req, res) => {
 
 // 404-käsittelijä
 app.use((_req, res) => {
-  res.status(404).json({ error: 'Reittiä ei löydy' });
+  res.status(404).json({ success: false, error: { message: 'Reittiä ei löydy', code: 'NOT_FOUND' } });
 });
 
-// Virheenkäsittelijä
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Virhe:', err);
-  res.status(500).json({ error: 'Palvelinvirhe' });
-});
+// Keskitetty virheenkäsittelijä
+app.use(errorHandler);
 
 // Käynnistys
 async function main() {

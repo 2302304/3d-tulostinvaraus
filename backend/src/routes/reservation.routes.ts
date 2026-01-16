@@ -123,7 +123,7 @@ router.post('/:id/cancel', authenticate, async (req: AuthRequest, res: Response)
 // DELETE /api/reservations/:id - Poista varaus (admin)
 router.delete('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthRequest, res: Response) => {
   try {
-    await reservationService.delete(req.params.id);
+    await reservationService.delete(req.params.id, req.user!.userId);
     res.json({ success: true, message: 'Varaus poistettu' });
   } catch (error) {
     console.error('Virhe poistettaessa varausta:', error);

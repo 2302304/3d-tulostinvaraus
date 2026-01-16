@@ -181,15 +181,15 @@
 - `develop` - Kehityshaara (valinnainen)
 - `feature/*` - Ominaisuushaarat (valinnainen)
 
-### Commitit (suunniteltu)
+### Commitit (suomeksi)
 1. ✅ `Projektin alustus: Full-stack varausjärjestelmän perusrakenne`
-2. `feat: kehitysympäristön validointi`
-3. `feat(backend): audit logging ja parannettu validointi`
-4. `feat(frontend): käyttöliittymän viimeistely`
-5. `test: backend-testit`
-6. `test: frontend-testit`
+2. ✅ `feat: kehitysympäristön konfigurointi ja dokumentointi`
+3. `feat(backend): audit-lokitus ja parannettu validointi`
+4. `feat(frontend): käyttöliittymän viimeistely ja parannukset`
+5. `test: backend-yksikkö- ja integraatiotestit`
+6. `test: frontend-komponenttitestit`
 7. `feat: tuotanto-Docker-konfiguraatio`
-8. `ci: GitHub Actions workflow`
+8. `ci: GitHub Actions -työnkulku`
 9. `deploy: tuotantojulkaisu`
 10. `docs: API- ja tekninen dokumentaatio`
 

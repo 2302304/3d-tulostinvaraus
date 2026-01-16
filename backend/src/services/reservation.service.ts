@@ -1,6 +1,8 @@
 import { prisma } from '../index.js';
 import { ReservationStatus } from '@prisma/client';
 import { CreateReservationInput } from '../utils/validation.js';
+import { auditService } from './audit.service.js';
+import { ApiError } from '../middleware/error.middleware.js';
 
 export class ReservationService {
   // Hae kaikki varaukset
@@ -56,30 +58,75 @@ export class ReservationService {
   async create(userId: string, input: CreateReservationInput) {
     const startTime = new Date(input.startTime);
     const endTime = new Date(input.endTime);
+    const now = new Date();
+
+    // Validoi: aloitusaika ei voi olla menneisyydessä
+    if (startTime < now) {
+      throw ApiError.badRequest('Varauksen aloitusaika ei voi olla menneisyydessä', 'INVALID_START_TIME');
+    }
+
+    // Validoi: lopetusaika on oltava aloitusajan jälkeen
+    if (endTime <= startTime) {
+      throw ApiError.badRequest('Lopetusajan on oltava aloitusajan jälkeen', 'INVALID_TIME_RANGE');
+    }
+
+    // Hae järjestelmäasetukset
+    const settings = await prisma.systemSettings.findFirst();
+    const maxReservationHours = settings?.maxReservationHours || 48;
+    const maxReservations = settings?.maxReservationsPerUser || 3;
+    const allowWeekends = settings?.allowWeekendReservations ?? true;
+
+    // Validoi: varauksen maksimikesto
+    const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+    if (durationHours > maxReservationHours) {
+      throw ApiError.badRequest(
+        `Varauksen maksimikesto on ${maxReservationHours} tuntia`,
+        'DURATION_EXCEEDED'
+      );
+    }
+
+    // Validoi: viikonloppuvaraukset
+    if (!allowWeekends) {
+      const startDay = startTime.getDay();
+      const endDay = endTime.getDay();
+      if (startDay === 0 || startDay === 6 || endDay === 0 || endDay === 6) {
+        throw ApiError.badRequest('Viikonloppuvaraukset eivät ole sallittuja', 'WEEKEND_NOT_ALLOWED');
+      }
+    }
+
+    // Tarkista tulostimen olemassaolo ja tila
+    const printer = await prisma.printer.findUnique({ where: { id: input.printerId } });
+    if (!printer) {
+      throw ApiError.notFound('Tulostinta ei löydy', 'PRINTER_NOT_FOUND');
+    }
+    if (printer.status !== 'AVAILABLE') {
+      throw ApiError.badRequest('Tulostin ei ole varattavissa', 'PRINTER_NOT_AVAILABLE');
+    }
 
     // Tarkista päällekkäisyydet
     const overlapping = await this.checkOverlap(input.printerId, startTime, endTime);
     if (overlapping) {
-      throw new Error('Valittu aika on jo varattu');
+      throw ApiError.conflict('Valittu aika on jo varattu', 'TIME_SLOT_TAKEN');
     }
 
     // Tarkista käyttäjän varausten määrä
-    const settings = await prisma.systemSettings.findFirst();
-    const maxReservations = settings?.maxReservationsPerUser || 3;
-
     const userActiveReservations = await prisma.reservation.count({
       where: {
         userId,
         status: { in: ['PENDING', 'CONFIRMED'] },
-        endTime: { gt: new Date() }
+        endTime: { gt: now }
       }
     });
 
     if (userActiveReservations >= maxReservations) {
-      throw new Error(`Sinulla voi olla enintään ${maxReservations} aktiivista varausta`);
+      throw ApiError.badRequest(
+        `Sinulla voi olla enintään ${maxReservations} aktiivista varausta`,
+        'MAX_RESERVATIONS_EXCEEDED'
+      );
     }
 
-    return prisma.reservation.create({
+    // Luo varaus
+    const reservation = await prisma.reservation.create({
       data: {
         userId,
         printerId: input.printerId,
@@ -97,6 +144,22 @@ export class ReservationService {
         }
       }
     });
+
+    // Audit-lokitus
+    await auditService.log({
+      action: 'RESERVATION_CREATE',
+      entityType: 'RESERVATION',
+      entityId: reservation.id,
+      userId,
+      newValues: {
+        printerId: input.printerId,
+        printerName: printer.name,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      },
+    });
+
+    return reservation;
   }
 
   // Päivitä varaus
@@ -104,13 +167,20 @@ export class ReservationService {
     const reservation = await prisma.reservation.findUnique({ where: { id } });
 
     if (!reservation) {
-      throw new Error('Varausta ei löydy');
+      throw ApiError.notFound('Varausta ei löydy', 'RESERVATION_NOT_FOUND');
     }
 
     // Vain omistaja, STAFF tai ADMIN voi muokata
     if (reservation.userId !== userId && userRole === 'STUDENT') {
-      throw new Error('Ei oikeutta muokata tätä varausta');
+      throw ApiError.forbidden('Ei oikeutta muokata tätä varausta', 'NOT_OWNER');
     }
+
+    // Tallenna vanhat arvot audit-lokia varten
+    const oldValues = {
+      startTime: reservation.startTime.toISOString(),
+      endTime: reservation.endTime.toISOString(),
+      description: reservation.description,
+    };
 
     // Jos aikoja muutetaan, tarkista päällekkäisyydet
     if (data.startTime || data.endTime) {
@@ -125,11 +195,11 @@ export class ReservationService {
       );
 
       if (overlapping) {
-        throw new Error('Valittu aika on jo varattu');
+        throw ApiError.conflict('Valittu aika on jo varattu', 'TIME_SLOT_TAKEN');
       }
     }
 
-    return prisma.reservation.update({
+    const updated = await prisma.reservation.update({
       where: { id },
       data: {
         startTime: data.startTime ? new Date(data.startTime) : undefined,
@@ -145,6 +215,22 @@ export class ReservationService {
         }
       }
     });
+
+    // Audit-lokitus
+    await auditService.log({
+      action: 'RESERVATION_UPDATE',
+      entityType: 'RESERVATION',
+      entityId: id,
+      userId,
+      oldValues,
+      newValues: {
+        startTime: updated.startTime.toISOString(),
+        endTime: updated.endTime.toISOString(),
+        description: updated.description,
+      },
+    });
+
+    return updated;
   }
 
   // Peruuta varaus
@@ -152,23 +238,55 @@ export class ReservationService {
     const reservation = await prisma.reservation.findUnique({ where: { id } });
 
     if (!reservation) {
-      throw new Error('Varausta ei löydy');
+      throw ApiError.notFound('Varausta ei löydy', 'RESERVATION_NOT_FOUND');
     }
 
     // Vain omistaja, STAFF tai ADMIN voi peruuttaa
     if (reservation.userId !== userId && userRole === 'STUDENT') {
-      throw new Error('Ei oikeutta peruuttaa tätä varausta');
+      throw ApiError.forbidden('Ei oikeutta peruuttaa tätä varausta', 'NOT_OWNER');
     }
 
-    return prisma.reservation.update({
+    const cancelled = await prisma.reservation.update({
       where: { id },
       data: { status: ReservationStatus.CANCELLED }
     });
+
+    // Audit-lokitus
+    await auditService.log({
+      action: 'RESERVATION_CANCEL',
+      entityType: 'RESERVATION',
+      entityId: id,
+      userId,
+      oldValues: { status: reservation.status },
+      newValues: { status: 'CANCELLED' },
+    });
+
+    return cancelled;
   }
 
   // Poista varaus (vain ADMIN)
-  async delete(id: string) {
-    return prisma.reservation.delete({ where: { id } });
+  async delete(id: string, adminUserId: string) {
+    const reservation = await prisma.reservation.findUnique({ where: { id } });
+
+    if (!reservation) {
+      throw ApiError.notFound('Varausta ei löydy', 'RESERVATION_NOT_FOUND');
+    }
+
+    await prisma.reservation.delete({ where: { id } });
+
+    // Audit-lokitus
+    await auditService.log({
+      action: 'RESERVATION_DELETE',
+      entityType: 'RESERVATION',
+      entityId: id,
+      userId: adminUserId,
+      oldValues: {
+        userId: reservation.userId,
+        printerId: reservation.printerId,
+        startTime: reservation.startTime.toISOString(),
+        endTime: reservation.endTime.toISOString(),
+      },
+    });
   }
 
   // Tarkista päällekkäisyydet
