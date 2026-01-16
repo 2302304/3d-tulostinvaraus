@@ -55,8 +55,12 @@ export default function ReservationsPage() {
       setFormData({ printerId: '', startTime: '', endTime: '', description: '' })
       setError('')
     },
-    onError: (err: { response?: { data?: { error?: string } } }) => {
-      setError(err.response?.data?.error || t('common.error'))
+    onError: (err: { response?: { data?: { error?: string | { message?: string } } } }) => {
+      const errorData = err.response?.data?.error
+      const message = typeof errorData === 'string'
+        ? errorData
+        : errorData?.message || t('common.error')
+      setError(message)
     },
   })
 

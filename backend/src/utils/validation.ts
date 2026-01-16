@@ -20,10 +20,16 @@ export const loginSchema = z.object({
 });
 
 // Varauksen luonti
+// datetime-local lähettää muodossa "2026-01-17T10:00", ISO 8601 on "2026-01-17T10:00:00Z"
+const dateTimeString = z.string().refine(
+  (val) => !isNaN(Date.parse(val)),
+  { message: 'Virheellinen päivämäärä/aika' }
+);
+
 export const createReservationSchema = z.object({
   printerId: z.string().cuid('Virheellinen tulostimen ID'),
-  startTime: z.string().datetime('Virheellinen aloitusaika'),
-  endTime: z.string().datetime('Virheellinen lopetusaika'),
+  startTime: dateTimeString,
+  endTime: dateTimeString,
   description: z.string().max(500).optional(),
 }).refine(data => new Date(data.endTime) > new Date(data.startTime), {
   message: 'Lopetusajan tulee olla aloitusajan jälkeen',
