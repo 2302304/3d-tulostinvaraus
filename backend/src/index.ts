@@ -33,10 +33,10 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Tiukempi rate limit kirjautumiselle
+// Rate limit kirjautumiselle (kehitysympäristössä löysempi)
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
+  windowMs: 60 * 60 * 1000, // 1 tunti
+  max: process.env.NODE_ENV === 'production' ? 10 : 50, // 50 dev, 10 tuotannossa
   message: { error: 'Liian monta kirjautumisyritystä, yritä myöhemmin uudelleen' }
 });
 

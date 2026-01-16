@@ -28,3 +28,13 @@ coverage/
 # Prisma
 backend/prisma/*.db
 backend/prisma/*.db-journal
+
+# Images/Screenshots
+Ohjeita/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.ico
+*.webp

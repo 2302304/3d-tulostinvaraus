@@ -19,7 +19,7 @@ interface Reservation {
 }
 
 export default function ReservationsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
 
   const [showForm, setShowForm] = useState(false)
@@ -30,6 +30,10 @@ export default function ReservationsPage() {
     description: '',
   })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  // Locale for date formatting
+  const locale = i18n.language === 'sv' ? 'sv-SE' : i18n.language === 'en' ? 'en-US' : 'fi-FI'
 
   // Hae tulostimet
   const { data: printersData } = useQuery({
@@ -54,6 +58,8 @@ export default function ReservationsPage() {
       setShowForm(false)
       setFormData({ printerId: '', startTime: '', endTime: '', description: '' })
       setError('')
+      setSuccess(t('reservations.createSuccess'))
+      setTimeout(() => setSuccess(''), 5000)
     },
     onError: (err: { response?: { data?: { error?: string | { message?: string } } } }) => {
       const errorData = err.response?.data?.error
@@ -69,12 +75,15 @@ export default function ReservationsPage() {
     mutationFn: (id: string) => reservationsApi.cancel(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-reservations'] })
+      setSuccess(t('reservations.cancelSuccess'))
+      setTimeout(() => setSuccess(''), 5000)
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     createMutation.mutate(formData)
   }
 
@@ -96,15 +105,26 @@ export default function ReservationsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-800">{t('reservations.title')}</h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm)
+            setError('')
+            setSuccess('')
+          }}
           className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
         >
           {showForm ? t('common.cancel') : t('reservations.newReservation')}
         </button>
       </div>
+
+      {/* Success message */}
+      {success && (
+        <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+          {success}
+        </div>
+      )}
 
       {/* New reservation form */}
       {showForm && (
@@ -130,7 +150,7 @@ export default function ReservationsPage() {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="">Valitse tulostin</option>
+                <option value="">{t('reservations.selectPrinter')}</option>
                 {printers
                   .filter((p) => p.status === 'AVAILABLE')
                   .map((printer) => (
@@ -141,7 +161,7 @@ export default function ReservationsPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('reservations.startTime')}
@@ -177,7 +197,7 @@ export default function ReservationsPage() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Vapaaehtoinen kuvaus tulostuksesta..."
+                placeholder={t('reservations.descriptionPlaceholder')}
               />
             </div>
 
@@ -207,9 +227,9 @@ export default function ReservationsPage() {
         ) : (
           <div className="divide-y divide-gray-100">
             {sortedReservations.map((reservation) => (
-              <div key={reservation.id} className="p-4 flex items-center justify-between">
+              <div key={reservation.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h3 className="font-medium text-gray-800">{reservation.printer.name}</h3>
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -232,8 +252,8 @@ export default function ReservationsPage() {
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">
-                    {new Date(reservation.startTime).toLocaleString('fi-FI')} -{' '}
-                    {new Date(reservation.endTime).toLocaleString('fi-FI')}
+                    {new Date(reservation.startTime).toLocaleString(locale)} -{' '}
+                    {new Date(reservation.endTime).toLocaleString(locale)}
                   </p>
                   {reservation.description && (
                     <p className="text-sm text-gray-400 mt-1">{reservation.description}</p>
@@ -244,7 +264,7 @@ export default function ReservationsPage() {
                   <button
                     onClick={() => handleCancel(reservation.id)}
                     disabled={cancelMutation.isPending}
-                    className="ml-4 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors self-start sm:self-auto"
                   >
                     {t('reservations.cancelReservation')}
                   </button>

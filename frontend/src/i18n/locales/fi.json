@@ -61,6 +61,8 @@
     "startTime": "Alkuaika",
     "endTime": "Loppuaika",
     "description": "Kuvaus",
+    "descriptionPlaceholder": "Vapaaehtoinen kuvaus tulostuksesta...",
+    "selectPrinter": "Valitse tulostin",
     "status": "Tila",
     "pending": "Odottaa",
     "confirmed": "Vahvistettu",
@@ -76,17 +78,29 @@
     "title": "Varauskalenteri",
     "today": "Tänään",
     "week": "Viikko",
-    "day": "Päivä"
+    "day": "Päivä",
+    "allPrinters": "Kaikki tulostimet",
+    "previous": "Edellinen",
+    "next": "Seuraava",
+    "free": "Vapaa",
+    "time": "Aika"
   },
   "admin": {
     "title": "Hallintapaneeli",
     "users": "Käyttäjät",
     "printers": "Tulostimet",
+    "reservations": "Varaukset",
     "settings": "Asetukset",
     "role": "Rooli",
     "active": "Aktiivinen",
     "student": "Opiskelija",
     "staff": "Henkilökunta",
-    "adminRole": "Ylläpitäjä"
+    "adminRole": "Ylläpitäjä",
+    "allReservations": "Kaikki varaukset",
+    "user": "Käyttäjä",
+    "deleteReservation": "Poista varaus",
+    "deleteConfirm": "Haluatko varmasti poistaa tämän varauksen?",
+    "filterByStatus": "Suodata tilan mukaan",
+    "allStatuses": "Kaikki tilat"
   }
 }

@@ -61,6 +61,8 @@
     "startTime": "Starttid",
     "endTime": "Sluttid",
     "description": "Beskrivning",
+    "descriptionPlaceholder": "Valfri beskrivning av utskriften...",
+    "selectPrinter": "Välj skrivare",
     "status": "Status",
     "pending": "Väntande",
     "confirmed": "Bekräftad",
@@ -76,17 +78,29 @@
     "title": "Bokningskalender",
     "today": "Idag",
     "week": "Vecka",
-    "day": "Dag"
+    "day": "Dag",
+    "allPrinters": "Alla skrivare",
+    "previous": "Föregående",
+    "next": "Nästa",
+    "free": "Ledig",
+    "time": "Tid"
   },
   "admin": {
     "title": "Adminpanel",
     "users": "Användare",
     "printers": "Skrivare",
+    "reservations": "Bokningar",
     "settings": "Inställningar",
     "role": "Roll",
     "active": "Aktiv",
     "student": "Student",
     "staff": "Personal",
-    "adminRole": "Admin"
+    "adminRole": "Admin",
+    "allReservations": "Alla bokningar",
+    "user": "Användare",
+    "deleteReservation": "Radera bokning",
+    "deleteConfirm": "Är du säker på att du vill radera denna bokning?",
+    "filterByStatus": "Filtrera efter status",
+    "allStatuses": "Alla statusar"
   }
 }

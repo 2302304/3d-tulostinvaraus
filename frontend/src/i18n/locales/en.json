@@ -61,6 +61,8 @@
     "startTime": "Start time",
     "endTime": "End time",
     "description": "Description",
+    "descriptionPlaceholder": "Optional description of the print job...",
+    "selectPrinter": "Select printer",
     "status": "Status",
     "pending": "Pending",
     "confirmed": "Confirmed",
@@ -76,17 +78,29 @@
     "title": "Reservation Calendar",
     "today": "Today",
     "week": "Week",
-    "day": "Day"
+    "day": "Day",
+    "allPrinters": "All printers",
+    "previous": "Previous",
+    "next": "Next",
+    "free": "Free",
+    "time": "Time"
   },
   "admin": {
     "title": "Admin Panel",
     "users": "Users",
     "printers": "Printers",
+    "reservations": "Reservations",
     "settings": "Settings",
     "role": "Role",
     "active": "Active",
     "student": "Student",
     "staff": "Staff",
-    "adminRole": "Admin"
+    "adminRole": "Admin",
+    "allReservations": "All reservations",
+    "user": "User",
+    "deleteReservation": "Delete reservation",
+    "deleteConfirm": "Are you sure you want to delete this reservation?",
+    "filterByStatus": "Filter by status",
+    "allStatuses": "All statuses"
   }
 }

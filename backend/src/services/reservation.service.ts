@@ -6,7 +6,7 @@ import { ApiError } from '../middleware/error.middleware.js';
 
 export class ReservationService {
   // Hae kaikki varaukset
-  async getAll(filters?: { printerId?: string; userId?: string; startDate?: Date; endDate?: Date }) {
+  async getAll(filters?: { printerId?: string; userId?: string; startDate?: Date; endDate?: Date; status?: string }) {
     const where: Record<string, unknown> = {};
 
     if (filters?.printerId) {
@@ -14,6 +14,9 @@ export class ReservationService {
     }
     if (filters?.userId) {
       where.userId = filters.userId;
+    }
+    if (filters?.status) {
+      where.status = filters.status;
     }
     if (filters?.startDate || filters?.endDate) {
       where.startTime = {};
@@ -35,7 +38,7 @@ export class ReservationService {
           select: { id: true, name: true, location: true }
         }
       },
-      orderBy: { startTime: 'asc' }
+      orderBy: { startTime: 'desc' }
     });
   }
 

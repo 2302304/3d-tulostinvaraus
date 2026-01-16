@@ -81,7 +81,7 @@ export const printersApi = {
 
 // Reservations API
 export const reservationsApi = {
-  getAll: (params?: { printerId?: string; startDate?: string; endDate?: string }) =>
+  getAll: (params?: { printerId?: string; startDate?: string; endDate?: string; userId?: string; status?: string }) =>
     api.get('/reservations', { params }),
   getById: (id: string) => api.get(`/reservations/${id}`),
   create: (data: { printerId: string; startTime: string; endTime: string; description?: string }) =>

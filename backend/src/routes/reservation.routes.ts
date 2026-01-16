@@ -10,17 +10,21 @@ const router = Router();
 // GET /api/reservations - Hae kaikki varaukset
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { printerId, startDate, endDate } = req.query;
+    const { printerId, startDate, endDate, userId, status } = req.query;
 
     const filters: {
       printerId?: string;
       startDate?: Date;
       endDate?: Date;
+      userId?: string;
+      status?: string;
     } = {};
 
     if (printerId) filters.printerId = printerId as string;
     if (startDate) filters.startDate = new Date(startDate as string);
     if (endDate) filters.endDate = new Date(endDate as string);
+    if (userId) filters.userId = userId as string;
+    if (status) filters.status = status as string;
 
     const reservations = await reservationService.getAll(filters);
     res.json({ success: true, data: reservations });
