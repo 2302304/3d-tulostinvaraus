@@ -38,3 +38,6 @@ Ohjeita/
 *.bmp
 *.ico
 *.webp
+
+# Kehityssuunnitelma (sisäinen dokumentti)
+KEHITYSSUUNNITELMA.md

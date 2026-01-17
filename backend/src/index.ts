@@ -1,64 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
-
-import authRoutes from './routes/auth.routes.js';
-import userRoutes from './routes/user.routes.js';
-import printerRoutes from './routes/printer.routes.js';
-import reservationRoutes from './routes/reservation.routes.js';
-import auditRoutes from './routes/audit.routes.js';
-import { errorHandler } from './middleware/error.middleware.js';
+import app from './app.js';
 
 // Prisma client
 export const prisma = new PrismaClient();
 
-const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
-app.use(express.json());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minuuttia
-  max: 100, // max 100 pyyntöä per IP
-  message: { error: 'Liian monta pyyntöä, yritä myöhemmin uudelleen' }
-});
-app.use(limiter);
-
-// Rate limit kirjautumiselle (kehitysympäristössä löysempi)
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 tunti
-  max: process.env.NODE_ENV === 'production' ? 10 : 50, // 50 dev, 10 tuotannossa
-  message: { error: 'Liian monta kirjautumisyritystä, yritä myöhemmin uudelleen' }
-});
-
-// Reitit
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/printers', printerRoutes);
-app.use('/api/reservations', reservationRoutes);
-app.use('/api/audit', auditRoutes);
-
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// 404-käsittelijä
-app.use((_req, res) => {
-  res.status(404).json({ success: false, error: { message: 'Reittiä ei löydy', code: 'NOT_FOUND' } });
-});
-
-// Keskitetty virheenkäsittelijä
-app.use(errorHandler);
 
 // Käynnistys
 async function main() {
@@ -75,7 +21,10 @@ async function main() {
   }
 }
 
-main();
+// Käynnistä vain jos ei ole testiympäristö
+if (process.env.NODE_ENV !== 'test') {
+  main();
+}
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

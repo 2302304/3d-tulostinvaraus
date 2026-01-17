@@ -239,3 +239,4 @@ npm run dev
 - Admin: `admin@vamk.fi` / `Admin123!`
 - Staff: `staff@vamk.fi` / `Staff123!`
 - Opiskelija: `opiskelija@edu.vamk.fi` / `Student123!`
+
