@@ -51,7 +51,8 @@
     "available": "Vapaa",
     "maintenance": "Huollossa",
     "outOfOrder": "Epäkunnossa",
-    "addPrinter": "Lisää tulostin"
+    "addPrinter": "Lisää tulostin",
+    "description": "Kuvaus"
   },
   "reservations": {
     "title": "Varaukset",
@@ -116,6 +117,10 @@
     "actionDelete": "Poisto",
     "actionLogin": "Kirjautuminen",
     "actionLogout": "Uloskirjautuminen",
-    "actionLoginFailed": "Epäonnistunut kirjautuminen"
+    "actionLoginFailed": "Epäonnistunut kirjautuminen",
+    "addPrinter": "Lisää tulostin",
+    "editPrinter": "Muokkaa tulostinta",
+    "deletePrinterConfirm": "Haluatko varmasti poistaa tulostimen {{name}}?",
+    "printerDescriptionPlaceholder": "Esim. Dual extrusion, suurin tulostusalue"
   }
 }

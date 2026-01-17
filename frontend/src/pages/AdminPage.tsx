@@ -53,6 +53,11 @@ export default function AdminPage() {
   const [auditEntityFilter, setAuditEntityFilter] = useState<string>('')
   const [auditActionFilter, setAuditActionFilter] = useState<string>('')
 
+  // Tulostimen hallinta
+  const [showPrinterModal, setShowPrinterModal] = useState(false)
+  const [editingPrinter, setEditingPrinter] = useState<Printer | null>(null)
+  const [printerForm, setPrinterForm] = useState({ name: '', description: '', location: '' })
+
   const locale = i18n.language === 'sv' ? 'sv-SE' : i18n.language === 'en' ? 'en-US' : 'fi-FI'
 
   // Hae käyttäjät
@@ -109,6 +114,32 @@ export default function AdminPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['printers'] }),
   })
 
+  // Luo tulostin
+  const createPrinterMutation = useMutation({
+    mutationFn: (data: { name: string; description?: string; location?: string }) =>
+      printersApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['printers'] })
+      closePrinterModal()
+    },
+  })
+
+  // Muokkaa tulostinta
+  const editPrinterMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name?: string; description?: string; location?: string } }) =>
+      printersApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['printers'] })
+      closePrinterModal()
+    },
+  })
+
+  // Poista tulostin
+  const deletePrinterMutation = useMutation({
+    mutationFn: (id: string) => printersApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['printers'] }),
+  })
+
   // Peruuta varaus
   const cancelReservationMutation = useMutation({
     mutationFn: (id: string) => reservationsApi.cancel(id),
@@ -130,6 +161,47 @@ export default function AdminPage() {
   const handleDeleteReservation = (id: string) => {
     if (confirm(t('admin.deleteConfirm'))) {
       deleteReservationMutation.mutate(id)
+    }
+  }
+
+  // Tulostimen hallinta funktiot
+  const openAddPrinterModal = () => {
+    setEditingPrinter(null)
+    setPrinterForm({ name: '', description: '', location: '' })
+    setShowPrinterModal(true)
+  }
+
+  const openEditPrinterModal = (printer: Printer) => {
+    setEditingPrinter(printer)
+    setPrinterForm({
+      name: printer.name,
+      description: printer.description || '',
+      location: printer.location || '',
+    })
+    setShowPrinterModal(true)
+  }
+
+  const closePrinterModal = () => {
+    setShowPrinterModal(false)
+    setEditingPrinter(null)
+    setPrinterForm({ name: '', description: '', location: '' })
+  }
+
+  const handlePrinterSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (editingPrinter) {
+      editPrinterMutation.mutate({
+        id: editingPrinter.id,
+        data: printerForm,
+      })
+    } else {
+      createPrinterMutation.mutate(printerForm)
+    }
+  }
+
+  const handleDeletePrinter = (printer: Printer) => {
+    if (confirm(t('admin.deletePrinterConfirm', { name: printer.name }))) {
+      deletePrinterMutation.mutate(printer.id)
     }
   }
 
@@ -256,60 +328,158 @@ export default function AdminPage() {
 
       {/* Printers tab */}
       {activeTab === 'printers' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          {printersLoading ? (
-            <div className="p-8 text-center text-gray-500">{t('common.loading')}</div>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    {t('printers.name')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    {t('printers.location')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    {t('printers.status')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {printers.map((printer) => (
-                  <tr key={printer.id}>
-                    <td className="px-4 py-3">
-                      <div>
-                        <span className="font-medium text-gray-800">{printer.name}</span>
-                        {printer.description && (
-                          <p className="text-sm text-gray-500">{printer.description}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{printer.location}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={printer.status}
-                        onChange={(e) =>
-                          updatePrinterMutation.mutate({ id: printer.id, status: e.target.value })
-                        }
-                        className={`px-3 py-1 text-sm rounded-lg border-0 font-medium ${
-                          printer.status === 'AVAILABLE'
-                            ? 'bg-green-100 text-green-700'
-                            : printer.status === 'MAINTENANCE'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        <option value="AVAILABLE">{t('printers.available')}</option>
-                        <option value="MAINTENANCE">{t('printers.maintenance')}</option>
-                        <option value="OUT_OF_ORDER">{t('printers.outOfOrder')}</option>
-                      </select>
-                    </td>
+        <div className="space-y-4">
+          {/* Lisää tulostin -nappi */}
+          <div className="flex justify-end">
+            <button
+              onClick={openAddPrinterModal}
+              className="px-4 py-2 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              + {t('admin.addPrinter')}
+            </button>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {printersLoading ? (
+              <div className="p-8 text-center text-gray-500">{t('common.loading')}</div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      {t('printers.name')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      {t('printers.location')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      {t('printers.status')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      {t('common.edit')}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {printers.map((printer) => (
+                    <tr key={printer.id}>
+                      <td className="px-4 py-3">
+                        <div>
+                          <span className="font-medium text-gray-800">{printer.name}</span>
+                          {printer.description && (
+                            <p className="text-sm text-gray-500">{printer.description}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{printer.location}</td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={printer.status}
+                          onChange={(e) =>
+                            updatePrinterMutation.mutate({ id: printer.id, status: e.target.value })
+                          }
+                          className={`px-3 py-1 text-sm rounded-lg border-0 font-medium ${
+                            printer.status === 'AVAILABLE'
+                              ? 'bg-green-100 text-green-700'
+                              : printer.status === 'MAINTENANCE'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          <option value="AVAILABLE">{t('printers.available')}</option>
+                          <option value="MAINTENANCE">{t('printers.maintenance')}</option>
+                          <option value="OUT_OF_ORDER">{t('printers.outOfOrder')}</option>
+                        </select>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => openEditPrinterModal(printer)}
+                            className="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          >
+                            {t('common.edit')}
+                          </button>
+                          <button
+                            onClick={() => handleDeletePrinter(printer)}
+                            disabled={deletePrinterMutation.isPending}
+                            className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tulostimen lisäys/muokkaus modaali */}
+      {showPrinterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              {editingPrinter ? t('admin.editPrinter') : t('admin.addPrinter')}
+            </h3>
+            <form onSubmit={handlePrinterSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('printers.name')} *
+                </label>
+                <input
+                  type="text"
+                  value={printerForm.name}
+                  onChange={(e) => setPrinterForm({ ...printerForm, name: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="Ultimaker S5"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('printers.description')}
+                </label>
+                <input
+                  type="text"
+                  value={printerForm.description}
+                  onChange={(e) => setPrinterForm({ ...printerForm, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder={t('admin.printerDescriptionPlaceholder')}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('printers.location')}
+                </label>
+                <input
+                  type="text"
+                  value={printerForm.location}
+                  onChange={(e) => setPrinterForm({ ...printerForm, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="Technobothnia"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closePrinterModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={createPrinterMutation.isPending || editPrinterMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+                >
+                  {editingPrinter ? t('common.save') : t('admin.addPrinter')}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

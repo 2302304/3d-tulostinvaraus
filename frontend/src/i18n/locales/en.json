@@ -51,7 +51,8 @@
     "available": "Available",
     "maintenance": "Maintenance",
     "outOfOrder": "Out of order",
-    "addPrinter": "Add printer"
+    "addPrinter": "Add printer",
+    "description": "Description"
   },
   "reservations": {
     "title": "Reservations",
@@ -116,6 +117,10 @@
     "actionDelete": "Delete",
     "actionLogin": "Login",
     "actionLogout": "Logout",
-    "actionLoginFailed": "Failed login"
+    "actionLoginFailed": "Failed login",
+    "addPrinter": "Add printer",
+    "editPrinter": "Edit printer",
+    "deletePrinterConfirm": "Are you sure you want to delete printer {{name}}?",
+    "printerDescriptionPlaceholder": "E.g. Dual extrusion, largest print area"
   }
 }

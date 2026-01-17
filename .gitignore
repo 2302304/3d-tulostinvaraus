@@ -41,3 +41,8 @@ Ohjeita/
 
 # Kehityssuunnitelma (sisäinen dokumentti)
 KEHITYSSUUNNITELMA.md
+
+# TypeScript build artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts

@@ -51,7 +51,8 @@
     "available": "Tillgänglig",
     "maintenance": "Underhåll",
     "outOfOrder": "Ur funktion",
-    "addPrinter": "Lägg till skrivare"
+    "addPrinter": "Lägg till skrivare",
+    "description": "Beskrivning"
   },
   "reservations": {
     "title": "Bokningar",
@@ -116,6 +117,10 @@
     "actionDelete": "Radera",
     "actionLogin": "Inloggning",
     "actionLogout": "Utloggning",
-    "actionLoginFailed": "Misslyckad inloggning"
+    "actionLoginFailed": "Misslyckad inloggning",
+    "addPrinter": "Lägg till skrivare",
+    "editPrinter": "Redigera skrivare",
+    "deletePrinterConfirm": "Är du säker på att du vill radera skrivaren {{name}}?",
+    "printerDescriptionPlaceholder": "T.ex. Dual extrusion, största utskriftsområde"
   }
 }
