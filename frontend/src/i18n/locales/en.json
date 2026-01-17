@@ -101,6 +101,21 @@
     "deleteReservation": "Delete reservation",
     "deleteConfirm": "Are you sure you want to delete this reservation?",
     "filterByStatus": "Filter by status",
-    "allStatuses": "All statuses"
+    "allStatuses": "All statuses",
+    "auditLogs": "Audit Logs",
+    "entityType": "Entity Type",
+    "action": "Action",
+    "timestamp": "Timestamp",
+    "details": "Details",
+    "allTypes": "All types",
+    "allActions": "All actions",
+    "system": "System",
+    "noAuditLogs": "No audit logs",
+    "actionCreate": "Create",
+    "actionUpdate": "Update",
+    "actionDelete": "Delete",
+    "actionLogin": "Login",
+    "actionLogout": "Logout",
+    "actionLoginFailed": "Failed login"
   }
 }

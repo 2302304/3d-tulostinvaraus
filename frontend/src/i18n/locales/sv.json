@@ -101,6 +101,21 @@
     "deleteReservation": "Radera bokning",
     "deleteConfirm": "Är du säker på att du vill radera denna bokning?",
     "filterByStatus": "Filtrera efter status",
-    "allStatuses": "Alla statusar"
+    "allStatuses": "Alla statusar",
+    "auditLogs": "Granskningsloggar",
+    "entityType": "Entitetstyp",
+    "action": "Åtgärd",
+    "timestamp": "Tidsstämpel",
+    "details": "Detaljer",
+    "allTypes": "Alla typer",
+    "allActions": "Alla åtgärder",
+    "system": "System",
+    "noAuditLogs": "Inga loggar",
+    "actionCreate": "Skapa",
+    "actionUpdate": "Uppdatera",
+    "actionDelete": "Radera",
+    "actionLogin": "Inloggning",
+    "actionLogout": "Utloggning",
+    "actionLoginFailed": "Misslyckad inloggning"
   }
 }

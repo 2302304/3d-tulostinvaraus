@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { printersApi, reservationsApi } from '../services/api'
 
 interface Printer {
@@ -18,13 +18,29 @@ interface Reservation {
   printer: { id: string; name: string }
 }
 
+interface ReservationModalData {
+  date: Date
+  hour: number
+  printerId?: string
+}
+
 type ViewMode = 'day' | 'week'
 
 export default function CalendarPage() {
   const { t, i18n } = useTranslation()
+  const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedPrinter, setSelectedPrinter] = useState<string>('')
   const [viewMode, setViewMode] = useState<ViewMode>('week')
+
+  // Varauksen luonti modaali
+  const [showModal, setShowModal] = useState(false)
+  const [modalData, setModalData] = useState<ReservationModalData | null>(null)
+  const [formPrinterId, setFormPrinterId] = useState('')
+  const [formEndHour, setFormEndHour] = useState(9)
+  const [formDescription, setFormDescription] = useState('')
+  const [formError, setFormError] = useState('')
+  const [formSuccess, setFormSuccess] = useState('')
 
   // Locale for date formatting
   const locale = i18n.language === 'sv' ? 'sv-SE' : i18n.language === 'en' ? 'en-US' : 'fi-FI'
@@ -34,6 +50,71 @@ export default function CalendarPage() {
     queryKey: ['printers'],
     queryFn: () => printersApi.getAll(),
   })
+
+  // Varauksen luonti mutation
+  const createReservation = useMutation({
+    mutationFn: (data: { printerId: string; startTime: string; endTime: string; description?: string }) =>
+      reservationsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      setFormSuccess(t('reservations.createSuccess'))
+      setFormError('')
+      setTimeout(() => {
+        closeModal()
+      }, 1500)
+    },
+    onError: (error: Error & { response?: { data?: { error?: string } } }) => {
+      const message = error.response?.data?.error || t('common.error')
+      if (message.includes('overlap') || message.includes('varattu') || message.includes('päällekkäi')) {
+        setFormError(t('reservations.overlapError'))
+      } else {
+        setFormError(message)
+      }
+    },
+  })
+
+  // Avaa modaali
+  const openModal = (date: Date, hour: number, printerId?: string) => {
+    setModalData({ date, hour, printerId })
+    setFormPrinterId(printerId || selectedPrinter || '')
+    setFormEndHour(Math.min(hour + 1, 20))
+    setFormDescription('')
+    setFormError('')
+    setFormSuccess('')
+    setShowModal(true)
+  }
+
+  // Sulje modaali
+  const closeModal = () => {
+    setShowModal(false)
+    setModalData(null)
+    setFormError('')
+    setFormSuccess('')
+  }
+
+  // Lähetä varaus
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!modalData || !formPrinterId) return
+
+    const startTime = new Date(modalData.date)
+    startTime.setHours(modalData.hour, 0, 0, 0)
+
+    const endTime = new Date(modalData.date)
+    endTime.setHours(formEndHour, 0, 0, 0)
+
+    createReservation.mutate({
+      printerId: formPrinterId,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      description: formDescription || undefined,
+    })
+  }
+
+  // Loppuaika valinnat (valitusta alkuajasta -> 20:00)
+  const endHourOptions = modalData
+    ? Array.from({ length: 20 - modalData.hour }, (_, i) => modalData.hour + 1 + i)
+    : []
 
   // Laske viikon alku ja loppu
   const weekDates = useMemo(() => {
@@ -265,7 +346,8 @@ export default function CalendarPage() {
                           key={date.toISOString()}
                           className={`p-1 border-l border-gray-100 ${
                             isToday(date) ? 'bg-primary-50/30' : ''
-                          }`}
+                          } ${!isBooked && selectedPrinter ? 'cursor-pointer hover:bg-green-50' : ''}`}
+                          onClick={() => !isBooked && selectedPrinter && openModal(date, hour, selectedPrinter)}
                         >
                           {isBooked ? (
                             hourReservations.map((r) => (
@@ -285,6 +367,8 @@ export default function CalendarPage() {
                                 </div>
                               </div>
                             ))
+                          ) : selectedPrinter ? (
+                            <div className="h-8 flex items-center justify-center text-gray-300 hover:text-green-600">+</div>
                           ) : (
                             <div className="h-8" />
                           )}
@@ -308,7 +392,10 @@ export default function CalendarPage() {
                   <div className="w-20 p-3 bg-gray-50 text-sm font-medium text-gray-600 border-r border-gray-100">
                     {hour}:00
                   </div>
-                  <div className="flex-1 p-3">
+                  <div
+                    className={`flex-1 p-3 ${!isBooked ? 'cursor-pointer hover:bg-green-50' : ''}`}
+                    onClick={() => !isBooked && openModal(selectedDate, hour, selectedPrinter)}
+                  >
                     {isBooked ? (
                       hourReservations.map((r) => (
                         <div
@@ -332,7 +419,9 @@ export default function CalendarPage() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-sm text-gray-400">{t('calendar.free')}</div>
+                      <div className="text-sm text-gray-400 hover:text-green-600">
+                        {t('calendar.free')} <span className="text-green-500">+</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -369,13 +458,17 @@ export default function CalendarPage() {
                       const isBooked = hourReservations.length > 0
 
                       return (
-                        <td key={printer.id} className="p-2">
+                        <td
+                          key={printer.id}
+                          className={`p-2 ${!isBooked ? 'cursor-pointer hover:bg-green-50' : ''}`}
+                          onClick={() => !isBooked && openModal(selectedDate, hour, printer.id)}
+                        >
                           {isBooked ? (
                             <div className="bg-primary-100 text-primary-800 px-2 py-1 rounded text-xs">
                               {hourReservations[0].user.firstName}
                             </div>
                           ) : (
-                            <div className="text-xs text-gray-300">-</div>
+                            <div className="text-xs text-gray-300 hover:text-green-600">+</div>
                           )}
                         </td>
                       )
@@ -387,6 +480,118 @@ export default function CalendarPage() {
           </div>
         )}
       </div>
+
+      {/* Varauksen luonti -modaali */}
+      {showModal && modalData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              {t('reservations.newReservation')}
+            </h3>
+
+            {formSuccess && (
+              <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+                {formSuccess}
+              </div>
+            )}
+
+            {formError && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                {formError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Päivämäärä */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reservations.startTime')}
+                </label>
+                <div className="text-gray-600">
+                  {modalData.date.toLocaleDateString(locale, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}{' '}
+                  {modalData.hour}:00
+                </div>
+              </div>
+
+              {/* Tulostin */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reservations.printer')}
+                </label>
+                <select
+                  value={formPrinterId}
+                  onChange={(e) => setFormPrinterId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">{t('reservations.selectPrinter')}</option>
+                  {printers.filter(p => p.status === 'AVAILABLE').map((printer) => (
+                    <option key={printer.id} value={printer.id}>
+                      {printer.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Loppuaika */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reservations.endTime')}
+                </label>
+                <select
+                  value={formEndHour}
+                  onChange={(e) => setFormEndHour(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  required
+                >
+                  {endHourOptions.map((h) => (
+                    <option key={h} value={h}>
+                      {h}:00
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Kuvaus */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reservations.description')}
+                </label>
+                <textarea
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder={t('reservations.descriptionPlaceholder')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+
+              {/* Painikkeet */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={createReservation.isPending || !formPrinterId}
+                  className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+                >
+                  {createReservation.isPending ? t('common.loading') : t('common.create')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

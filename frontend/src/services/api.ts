@@ -102,3 +102,19 @@ export const usersApi = {
   setActive: (id: string, isActive: boolean) =>
     api.patch(`/users/${id}/active`, { isActive }),
 }
+
+// Audit API
+export const auditApi = {
+  getAll: (params?: {
+    entityType?: string
+    entityId?: string
+    userId?: string
+    action?: string
+    startDate?: string
+    endDate?: string
+    limit?: number
+    offset?: number
+  }) => api.get('/audit', { params }),
+  getEntityHistory: (entityType: string, entityId: string) =>
+    api.get(`/audit/entity/${entityType}/${entityId}`),
+}

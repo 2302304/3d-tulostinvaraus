@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { usersApi, printersApi, reservationsApi } from '../services/api'
+import { usersApi, printersApi, reservationsApi, auditApi } from '../services/api'
 
 interface User {
   id: string
@@ -31,11 +31,29 @@ interface Reservation {
   printer: { id: string; name: string; location: string }
 }
 
+interface AuditLog {
+  id: string
+  entityType: string
+  entityId: string
+  action: string
+  userId: string
+  userEmail?: string
+  oldValue?: string
+  newValue?: string
+  ipAddress?: string
+  createdAt: string
+  user?: { firstName: string; lastName: string; email: string }
+}
+
 export default function AdminPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'users' | 'printers' | 'reservations'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'printers' | 'reservations' | 'audit'>('users')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [auditEntityFilter, setAuditEntityFilter] = useState<string>('')
+  const [auditActionFilter, setAuditActionFilter] = useState<string>('')
+
+  const locale = i18n.language === 'sv' ? 'sv-SE' : i18n.language === 'en' ? 'en-US' : 'fi-FI'
 
   // Hae käyttäjät
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -55,9 +73,21 @@ export default function AdminPage() {
     queryFn: () => reservationsApi.getAll(statusFilter ? { status: statusFilter } : undefined),
   })
 
+  // Hae audit-lokit
+  const { data: auditData, isLoading: auditLoading } = useQuery({
+    queryKey: ['admin-audit', auditEntityFilter, auditActionFilter],
+    queryFn: () => auditApi.getAll({
+      entityType: auditEntityFilter || undefined,
+      action: auditActionFilter || undefined,
+      limit: 100,
+    }),
+    enabled: activeTab === 'audit',
+  })
+
   const users: User[] = usersData?.data?.data || []
   const printers: Printer[] = printersData?.data?.data || []
   const reservations: Reservation[] = reservationsData?.data?.data || []
+  const auditLogs: AuditLog[] = auditData?.data?.data || []
 
   // Päivitä käyttäjän rooli
   const updateRoleMutation = useMutation({
@@ -145,6 +175,9 @@ export default function AdminPage() {
         </button>
         <button onClick={() => setActiveTab('reservations')} className={tabClass('reservations')}>
           {t('admin.reservations')}
+        </button>
+        <button onClick={() => setActiveTab('audit')} className={tabClass('audit')}>
+          {t('admin.auditLogs')}
         </button>
       </div>
 
@@ -380,6 +413,124 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Audit logs tab */}
+      {activeTab === 'audit' && (
+        <div className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mr-2">
+                {t('admin.entityType')}:
+              </label>
+              <select
+                value={auditEntityFilter}
+                onChange={(e) => setAuditEntityFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">{t('admin.allTypes')}</option>
+                <option value="USER">{t('admin.users')}</option>
+                <option value="RESERVATION">{t('admin.reservations')}</option>
+                <option value="PRINTER">{t('admin.printers')}</option>
+                <option value="SYSTEM">{t('admin.system')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mr-2">
+                {t('admin.action')}:
+              </label>
+              <select
+                value={auditActionFilter}
+                onChange={(e) => setAuditActionFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">{t('admin.allActions')}</option>
+                <option value="CREATE">{t('admin.actionCreate')}</option>
+                <option value="UPDATE">{t('admin.actionUpdate')}</option>
+                <option value="DELETE">{t('admin.actionDelete')}</option>
+                <option value="LOGIN">{t('admin.actionLogin')}</option>
+                <option value="LOGOUT">{t('admin.actionLogout')}</option>
+                <option value="LOGIN_FAILED">{t('admin.actionLoginFailed')}</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {auditLoading ? (
+              <div className="p-8 text-center text-gray-500">{t('common.loading')}</div>
+            ) : auditLogs.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">{t('admin.noAuditLogs')}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                        {t('admin.timestamp')}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                        {t('admin.user')}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                        {t('admin.action')}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                        {t('admin.entityType')}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                        {t('admin.details')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {auditLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {new Date(log.createdAt).toLocaleString(locale)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {log.user ? (
+                            <div>
+                              <span className="font-medium text-gray-800">
+                                {log.user.firstName} {log.user.lastName}
+                              </span>
+                              <p className="text-xs text-gray-500">{log.user.email}</p>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">{log.userEmail || '-'}</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            log.action === 'CREATE' ? 'bg-green-100 text-green-700' :
+                            log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' :
+                            log.action === 'DELETE' ? 'bg-red-100 text-red-700' :
+                            log.action === 'LOGIN' ? 'bg-purple-100 text-purple-700' :
+                            log.action === 'LOGIN_FAILED' ? 'bg-orange-100 text-orange-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {log.entityType}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
+                          {log.newValue ? (
+                            <span title={log.newValue}>{log.newValue.substring(0, 50)}...</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>

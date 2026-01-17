@@ -6,7 +6,8 @@ import App from './App'
 import './index.css'
 import './i18n'
 
-const queryClient = new QueryClient({
+// Export queryClient jotta se voidaan tyhjentää uloskirjautuessa
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minuuttia

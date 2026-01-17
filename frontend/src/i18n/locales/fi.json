@@ -101,6 +101,21 @@
     "deleteReservation": "Poista varaus",
     "deleteConfirm": "Haluatko varmasti poistaa tämän varauksen?",
     "filterByStatus": "Suodata tilan mukaan",
-    "allStatuses": "Kaikki tilat"
+    "allStatuses": "Kaikki tilat",
+    "auditLogs": "Tapahtumaloki",
+    "entityType": "Kohdetyyppi",
+    "action": "Toiminto",
+    "timestamp": "Aikaleima",
+    "details": "Tiedot",
+    "allTypes": "Kaikki tyypit",
+    "allActions": "Kaikki toiminnot",
+    "system": "Järjestelmä",
+    "noAuditLogs": "Ei tapahtumia",
+    "actionCreate": "Luonti",
+    "actionUpdate": "Muokkaus",
+    "actionDelete": "Poisto",
+    "actionLogin": "Kirjautuminen",
+    "actionLogout": "Uloskirjautuminen",
+    "actionLoginFailed": "Epäonnistunut kirjautuminen"
   }
 }

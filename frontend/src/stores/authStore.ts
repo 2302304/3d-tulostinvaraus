@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { queryClient } from '../main'
 
 export type Role = 'STUDENT' | 'STAFF' | 'ADMIN'
 
@@ -29,21 +30,27 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       isAuthenticated: false,
 
-      login: (user, accessToken, refreshToken) =>
+      login: (user, accessToken, refreshToken) => {
+        // Tyhjennä edellisen käyttäjän cache kirjautuessa
+        queryClient.clear()
         set({
           user,
           accessToken,
           refreshToken,
           isAuthenticated: true,
-        }),
+        })
+      },
 
-      logout: () =>
+      logout: () => {
+        // Tyhjennä query cache kun käyttäjä kirjautuu ulos
+        queryClient.clear()
         set({
           user: null,
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
-        }),
+        })
+      },
 
       updateToken: (accessToken) =>
         set({ accessToken }),
