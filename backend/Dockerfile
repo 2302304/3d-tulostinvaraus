@@ -1,6 +1,9 @@
 # Backend Dockerfile
 FROM node:20-alpine
 
+# Asenna OpenSSL Prismaa varten
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Kopioi package.json ja asenna riippuvuudet (myös devDependencies buildausta varten)
