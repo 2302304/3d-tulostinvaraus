@@ -73,6 +73,14 @@ export class ReservationService {
       throw ApiError.badRequest('Lopetusajan on oltava aloitusajan jälkeen', 'INVALID_TIME_RANGE');
     }
 
+    // Validoi: varaukset kokonaisille tunneille
+    if (startTime.getMinutes() !== 0 || startTime.getSeconds() !== 0) {
+      throw ApiError.badRequest('Varauksen aloitusajan on oltava tasatunnilla', 'INVALID_START_TIME_MINUTES');
+    }
+    if (endTime.getMinutes() !== 0 || endTime.getSeconds() !== 0) {
+      throw ApiError.badRequest('Varauksen lopetusajan on oltava tasatunnilla', 'INVALID_END_TIME_MINUTES');
+    }
+
     // Hae järjestelmäasetukset
     const settings = await prisma.systemSettings.findFirst();
     const maxReservationHours = settings?.maxReservationHours || 48;

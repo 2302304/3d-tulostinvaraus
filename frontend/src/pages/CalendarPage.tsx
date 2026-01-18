@@ -57,6 +57,7 @@ export default function CalendarPage() {
       reservationsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['my-reservations'] })
       setFormSuccess(t('reservations.createSuccess'))
       setFormError('')
       setTimeout(() => {
